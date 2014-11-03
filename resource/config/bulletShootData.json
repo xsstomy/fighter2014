@@ -1,7 +1,7 @@
 [
 	[
 	  	[
-		  {"bulletType":0,"bulletAttackPower":1,"speedX":0,"speedY":10,"offsetShootPosX":0,"offsetShootPosY":0,"is":false},
+		  {"bulletType":0,"bulletAttackPower":1,"speedX":0,"speedY":10,"offsetShootPosX":0,"offsetShootPosY":0,"isBackCall":false},
 		  {"bulletType":0,"bulletAttackPower":1,"speedX":0,"speedY":10,"offsetShootPosX":-10,"offsetShootPosY":-30},
 		  {"bulletType":0,"bulletAttackPower":1,"speedX":0,"speedY":10,"offsetShootPosX":10,"offsetShootPosY":-30},
 		  {"bulletType":0,"bulletAttackPower":1,"speedX":0,"speedY":10,"offsetShootPosX":-10,"offsetShootPosY":-60},

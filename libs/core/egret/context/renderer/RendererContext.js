@@ -86,7 +86,8 @@ var egret;
          * @param destWidth {any}
          * @param destHeigh {any}
          */
-        RendererContext.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
+        RendererContext.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            if (repeat === void 0) { repeat = "no-repeat"; }
             egret.Profiler.getInstance().onDrawImage();
         };
         /**
@@ -142,6 +143,8 @@ var egret;
         RendererContext.prototype.onRenderStart = function () {
         };
         RendererContext.prototype.onRenderFinish = function () {
+        };
+        RendererContext.prototype.setGlobalColorTransform = function (colorTransformMatrix) {
         };
         RendererContext.createRendererContext = function (canvas) {
             return null;

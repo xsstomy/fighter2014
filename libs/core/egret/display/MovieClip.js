@@ -212,6 +212,9 @@ var egret;
             this._currentFrameIndex++;
             if (this._currentFrameIndex == this._totalFrame) {
                 this._currentFrameIndex = 0;
+                if (frameData.action != egret.Event.COMPLETE) {
+                    this.movieClip.dispatchEventWith(egret.Event.COMPLETE);
+                }
             }
         };
         DefaultMovieClipDelegate.prototype.getTexture = function (name) {

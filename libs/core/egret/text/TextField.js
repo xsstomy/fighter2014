@@ -196,7 +196,7 @@ var egret;
             this._setSizeDirty();
         };
         TextField.prototype._setBaseText = function (value) {
-            if (this._text != value || this.displayAsPassword) {
+            if (this._text != value || this._displayAsPassword) {
                 this._setTextDirty();
                 this._text = value;
                 var text = "";
@@ -221,6 +221,9 @@ var egret;
         };
         TextField.prototype._setText = function (value) {
             this._setBaseText(value);
+            if (this._inputUtils) {
+                this._inputUtils._setText(this._text);
+            }
         };
         Object.defineProperty(TextField.prototype, "displayAsPassword", {
             get: function () {
@@ -384,6 +387,36 @@ var egret;
                 this._verticalAlign = value;
             }
         };
+        Object.defineProperty(TextField.prototype, "maxScrollV", {
+            get: function () {
+                return this._numLines;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TextField.prototype, "selectionBeginIndex", {
+            get: function () {
+                return 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TextField.prototype, "selectionEndIndex", {
+            get: function () {
+                return 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TextField.prototype, "caretIndex", {
+            get: function () {
+                return 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        TextField.prototype._setSelection = function (beginIndex, endIndex) {
+        };
         Object.defineProperty(TextField.prototype, "lineSpacing", {
             get: function () {
                 return this._lineSpacing;
@@ -399,6 +432,9 @@ var egret;
                 this._setTextDirty();
                 this._lineSpacing = value;
             }
+        };
+        TextField.prototype._getLineHeight = function () {
+            return this._lineSpacing + this._size;
         };
         Object.defineProperty(TextField.prototype, "numLines", {
             get: function () {
@@ -421,6 +457,10 @@ var egret;
             this._multiline = value;
             this._setDirty();
         };
+        TextField.prototype.setFocus = function () {
+            //todo:
+            egret.Logger.warning("TextField.setFocus 没有实现");
+        };
         TextField.prototype._onRemoveFromStage = function () {
             _super.prototype._onRemoveFromStage.call(this);
             if (this._type == egret.TextFieldType.INPUT) {
@@ -439,6 +479,7 @@ var egret;
         TextField.prototype._updateTransform = function () {
             if (this._type == egret.TextFieldType.INPUT) {
                 if (this._normalDirty) {
+                    this._clearDirty();
                     this._inputUtils._updateProperties();
                 }
                 else {

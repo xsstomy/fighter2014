@@ -39,49 +39,8 @@ var egret;
         __extends(Browser, _super);
         function Browser() {
             _super.call(this);
-            this.translate = (this.isHD) ? function (a) {
-                return "translate3d(" + a.x + "px, " + (a.y - egret.MainContext.instance.stage.stageHeight) + "px, 0) ";
-            } : function (a) {
-                return "translate(" + a.x + "px, " + a.y + "px) ";
-            };
-            this.rotate = (this.isHD) ? function (a) {
-                return "rotateZ(" + a + "deg) ";
-            } : function (a) {
-                return "rotate(" + a + "deg) ";
-            };
             this.ua = navigator.userAgent.toLowerCase();
-            var browserTypes = this.ua.match(/micromessenger|qqbrowser|mqqbrowser|ucbrowser|360browser|baidubrowser|maxthon|ie|opera|firefox/) || this.ua.match(/chrome|safari/);
-            if (browserTypes && browserTypes.length > 0) {
-                var el = browserTypes[0];
-                if (el == 'micromessenger') {
-                    this.type = 'wechat';
-                }
-                this.type = el;
-            }
-            this.type = "unknow";
-            switch (this.type) {
-                case "firefox":
-                    this.pfx = "Moz";
-                    this.isHD = true;
-                    break;
-                case "chrome":
-                case "safari":
-                    this.pfx = "webkit";
-                    this.isHD = true;
-                    break;
-                case "opera":
-                    this.pfx = "O";
-                    this.isHD = false;
-                    break;
-                case "ie":
-                    this.pfx = "ms";
-                    this.isHD = false;
-                    break;
-                default:
-                    this.pfx = "webkit";
-                    this.isHD = true;
-            }
-            this.trans = this.pfx + "Transform";
+            this.trans = this._getTrans();
         }
         Browser.getInstance = function () {
             if (Browser.instance == null) {
@@ -101,6 +60,27 @@ var egret;
             enumerable: true,
             configurable: true
         });
+        Browser.prototype._getHeader = function (tempStyle) {
+            if ("transform" in tempStyle) {
+                return "";
+            }
+            var transArr = ["webkit", "ms", "Moz", "O"];
+            for (var i = 0; i < transArr.length; i++) {
+                var transform = transArr[i] + 'Transform';
+                if (transform in tempStyle)
+                    return transArr[i];
+            }
+            return "";
+        };
+        Browser.prototype._getTrans = function () {
+            var tempStyle = document.createElement('div').style;
+            var _header = this._getHeader(tempStyle);
+            var type = "transform";
+            if (_header == "") {
+                return type;
+            }
+            return _header + type.charAt(0).toUpperCase() + type.substr(1);
+        };
         Browser.prototype.$new = function (x) {
             return this.$(document.createElement(x));
         };
@@ -173,6 +153,12 @@ var egret;
                 };
             }
             return el;
+        };
+        Browser.prototype.translate = function (a) {
+            return "translate(" + a.x + "px, " + a.y + "px) ";
+        };
+        Browser.prototype.rotate = function (a) {
+            return "rotate(" + a + "deg) ";
         };
         Browser.prototype.scale = function (a) {
             return "scale(" + a.x + ", " + a.y + ") ";

@@ -301,14 +301,20 @@ class GKManage extends egret.Sprite
 // 轨迹管理
 class ActionManage
 {
-    private obj:any;
+    public static getInstance():ActionManage
+    {
 
+        return new ActionManage();
+    }
+
+    private obj:any;
     private isloop:any;
     private updatetime:any;
     private isratote:any;
     private isDie:any;
     private enemyTrackIndex:any;//怪物那一条路径
     private testMoveMode:MoveMode;
+
     public dealEnemyTrack(obj:any)
     {
         this.obj = obj;
@@ -351,7 +357,7 @@ class ActionManage
             this.testMoveMode = null;
         }
 
-        //this.checkIsDie();
+        this.obj.checkIsDie();
     }
 
 }

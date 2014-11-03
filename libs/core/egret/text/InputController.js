@@ -49,6 +49,9 @@ var egret;
             this._text.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onMouseDownHandler, this);
             egret.MainContext.instance.stage.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onStageDownHandler, this);
         };
+        InputController.prototype._setText = function (value) {
+            this.stageText._setText(value);
+        };
         InputController.prototype.onFocusHandler = function (event) {
             this.hideText();
         };
@@ -77,7 +80,7 @@ var egret;
         };
         InputController.prototype.hideText = function () {
             if (!this._isFocus) {
-                this._text._setBaseText("");
+                this._text.visible = false;
                 this._isFocus = true;
             }
         };
@@ -85,6 +88,7 @@ var egret;
             this.resetText();
         };
         InputController.prototype.resetText = function () {
+            this._text.visible = true;
             this._text._setBaseText(this.stageText._getText());
         };
         InputController.prototype._updateTransform = function () {

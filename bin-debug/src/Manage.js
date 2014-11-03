@@ -245,6 +245,9 @@ var GKManage = (function (_super) {
 var ActionManage = (function () {
     function ActionManage() {
     }
+    ActionManage.getInstance = function () {
+        return new ActionManage();
+    };
     ActionManage.prototype.dealEnemyTrack = function (obj) {
         this.obj = obj;
         this.enemyTrackIndex = ENEMY_TRACK_DATA[this.obj.moveTrack];
@@ -278,7 +281,7 @@ var ActionManage = (function () {
             this.obj.removeEventListener(egret.Event.ENTER_FRAME, this.onFrame, this);
             this.testMoveMode = null;
         }
-        //this.checkIsDie();
+        this.obj.checkIsDie();
     };
     return ActionManage;
 })();

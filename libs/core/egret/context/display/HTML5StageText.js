@@ -151,9 +151,11 @@ var egret;
             this._canUse = true;
         };
         HTML5StageText.prototype._hide = function () {
-            this._canUse = false;
-            this._closeInput();
-            this.closeKeyboard();
+            if (this._canUse) {
+                this._canUse = false;
+                this._closeInput();
+                this.closeKeyboard();
+            }
         };
         HTML5StageText.prototype._openInput = function () {
             if (!this._isShow) {
@@ -293,11 +295,11 @@ var egret;
          * @param value {string}
          */
         HTML5StageText.prototype._setText = function (value) {
-            //            this._text = value;
+            this._text = value;
             this._defaultText = value;
-            //            if (this._isShow) {
-            //                this.setElementValue(value);
-            //            }
+            if (this._isShow) {
+                this.setElementValue(value);
+            }
         };
         /**
          * @method egret.StageText#setTextType

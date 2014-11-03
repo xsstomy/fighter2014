@@ -58,9 +58,15 @@ var egret;
             displayObject._worldTransform.identity();
             displayObject.worldAlpha = 1;
             if (displayObject instanceof egret.DisplayObjectContainer) {
-                this._offsetX = bounds.x;
-                this._offsetY = bounds.y;
-                displayObject._worldTransform.append(1, 0, 0, 1, -bounds.x, -bounds.y);
+                var anchorOffsetX = displayObject._anchorOffsetX;
+                var anchorOffsetY = displayObject._anchorOffsetY;
+                if (displayObject._anchorX != 0 || displayObject._anchorY != 0) {
+                    anchorOffsetX = displayObject._anchorX * bounds.width;
+                    anchorOffsetY = displayObject._anchorY * bounds.height;
+                }
+                this._offsetX = bounds.x + anchorOffsetX;
+                this._offsetY = bounds.y + anchorOffsetY;
+                displayObject._worldTransform.append(1, 0, 0, 1, -this._offsetX, -this._offsetY);
                 var list = displayObject._children;
                 for (var i = 0, length = list.length; i < length; i++) {
                     var child = list[i];

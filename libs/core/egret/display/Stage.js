@@ -124,9 +124,11 @@ var egret;
             var l = children.length;
             for (var i = l - 1; i >= 0; i--) {
                 var child = children[i];
-                var o = child;
-                var offsetPoint = o._getOffsetPoint();
-                var mtx = egret.Matrix.identity.identity().prependTransform(o._x, o._y, o._scaleX, o._scaleY, o._rotation, 0, 0, offsetPoint.x, offsetPoint.y);
+                var mtx = child._getMatrix();
+                var scrollRect = child._scrollRect;
+                if (scrollRect) {
+                    mtx.append(1, 0, 0, 1, -scrollRect.x, -scrollRect.y);
+                }
                 mtx.invert();
                 var point = egret.Matrix.transformCoords(mtx, x, y);
                 result = child.hitTest(point.x, point.y, true);
@@ -157,6 +159,13 @@ var egret;
                 child._updateTransform();
             }
         };
+        Object.defineProperty(Stage.prototype, "focus", {
+            get: function () {
+                return null;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Stage._invalidateRenderFlag = false;
         return Stage;
     })(egret.DisplayObjectContainer);

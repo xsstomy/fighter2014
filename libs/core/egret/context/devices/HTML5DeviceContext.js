@@ -47,6 +47,7 @@ var egret;
             _super.call(this);
             this.frameRate = frameRate;
             this._time = 0;
+            this._isActivate = true;
             if (frameRate == 60) {
                 HTML5DeviceContext.requestAnimationFrame = window["requestAnimationFrame"] || window["webkitRequestAnimationFrame"] || window["mozRequestAnimationFrame"] || window["oRequestAnimationFrame"] || window["msRequestAnimationFrame"];
                 HTML5DeviceContext.cancelAnimationFrame = window["cancelAnimationFrame"] || window["msCancelAnimationFrame"] || window["mozCancelAnimationFrame"] || window["webkitCancelAnimationFrame"] || window["oCancelAnimationFrame"] || window["cancelRequestAnimationFrame"] || window["msCancelRequestAnimationFrame"] || window["mozCancelRequestAnimationFrame"] || window["oCancelRequestAnimationFrame"] || window["webkitCancelRequestAnimationFrame"];
@@ -93,9 +94,24 @@ var egret;
             }
         };
         HTML5DeviceContext.prototype.registerListener = function () {
+            var self = this;
+            //失去焦点
+            var onBlurHandler = function () {
+                if (!self._isActivate) {
+                    return;
+                }
+                self._isActivate = false;
+                egret.MainContext.instance.stage.dispatchEvent(new egret.Event(egret.Event.DEACTIVATE));
+            };
+            //激活
             var onFocusHandler = function () {
+                if (self._isActivate) {
+                    return;
+                }
+                self._isActivate = true;
                 var context = HTML5DeviceContext.instance;
                 context.reset();
+                egret.MainContext.instance.stage.dispatchEvent(new egret.Event(egret.Event.ACTIVATE));
             };
             var handleVisibilityChange = function () {
                 if (!document[hidden]) {
@@ -103,8 +119,7 @@ var egret;
                 }
             };
             window.onfocus = onFocusHandler;
-            window.onblur = function () {
-            };
+            window.onblur = onBlurHandler;
             var hidden, visibilityChange;
             if (typeof document.hidden !== "undefined") {
                 hidden = "hidden";
@@ -124,6 +139,7 @@ var egret;
             }
             if ("onpageshow" in window && "onpagehide" in window) {
                 window.addEventListener("pageshow", onFocusHandler, false);
+                window.addEventListener("pagehide", onBlurHandler, false);
             }
             if (hidden && visibilityChange) {
                 document.addEventListener(visibilityChange, handleVisibilityChange, false);

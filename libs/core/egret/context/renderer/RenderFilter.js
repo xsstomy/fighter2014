@@ -81,7 +81,8 @@ var egret;
          * @param destWidth {any}
          * @param destHeight {any}
          */
-        RenderFilter.prototype.drawImage = function (renderContext, data, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
+        RenderFilter.prototype.drawImage = function (renderContext, data, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            if (repeat === void 0) { repeat = undefined; }
             destX = destX || 0;
             destY = destY || 0;
             var locTexture = data._texture_to_render;
@@ -89,7 +90,7 @@ var egret;
                 return;
             }
             if (!data._worldBounds) {
-                renderContext.drawImage(locTexture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+                renderContext.drawImage(locTexture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
                 return;
             }
             var originalData = this._originalData;
@@ -148,7 +149,7 @@ var egret;
                         }
                     }
                 }
-                renderContext.drawImage(locTexture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+                renderContext.drawImage(locTexture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
             }
         };
         RenderFilter.prototype.ignoreRender = function (data, rect, destX, destY) {

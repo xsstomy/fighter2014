@@ -1,3 +1,9 @@
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 /**
  * Copyright (c) 2014,Egret-Labs.org
  * All rights reserved.
@@ -40,11 +46,15 @@ var egret;
             this.gl = gl;
             this.primitiveShader = new PrimitiveShader(gl);
             this.defaultShader = new EgretShader(gl);
+            this.colorTransformShader = new ColorTransformShader(gl);
             this.activateShader(this.defaultShader);
         };
         WebGLShaderManager.prototype.activateShader = function (shader) {
-            this.gl.useProgram(shader.program);
-            this.setAttribs(shader.attributes);
+            if (this.currentShader != shader) {
+                this.gl.useProgram(shader.program);
+                this.setAttribs(shader.attributes);
+                this.currentShader = shader;
+            }
         };
         WebGLShaderManager.prototype.setAttribs = function (attribs) {
             var i;
@@ -78,9 +88,9 @@ var egret;
     WebGLShaderManager.prototype.__class__ = "egret.WebGLShaderManager";
     var EgretShader = (function () {
         function EgretShader(gl) {
-            this.defaultVertexSrc = "attribute vec2 aVertexPosition;\n" + "attribute vec2 aTextureCoord;\n" + "attribute vec2 aColor;\n" + "uniform vec2 projectionVector;\n" + "uniform vec2 offsetVector;\n" + "varying vec2 vTextureCoord;\n" + "varying vec4 vColor;\n" + "const vec2 center = vec2(-1.0, 1.0);\n" + "void main(void) {\n" + "   gl_Position = vec4( ((aVertexPosition + offsetVector) / projectionVector) + center , 0.0, 1.0);\n" + "   vTextureCoord = aTextureCoord;\n" + "   vec3 color = mod(vec3(aColor.y/65536.0, aColor.y/256.0, aColor.y), 256.0) / 256.0;\n" + "   vColor = vec4(color * aColor.x, aColor.x);\n" + "}";
+            this.defaultVertexSrc = "attribute vec2 aVertexPosition;\n" + "attribute vec2 aTextureCoord;\n" + "attribute vec2 aColor;\n" + "uniform vec2 projectionVector;\n" + "uniform vec2 offsetVector;\n" + "varying vec2 vTextureCoord;\n" + "varying vec4 vColor;\n" + "const vec2 center = vec2(-1.0, 1.0);\n" + "void main(void) {\n" + "   gl_Position = vec4( ((aVertexPosition + offsetVector) / projectionVector) + center , 0.0, 1.0);\n" + "   vTextureCoord = aTextureCoord;\n" + "   vColor = vec4(aColor.x, aColor.x, aColor.x, aColor.x);\n" + "}";
             this.program = null;
-            this.fragmentSrc = "precision lowp float;\n" + "varying vec2 vTextureCoord;\n" + "varying vec4 vColor;\n" + "uniform sampler2D uSampler;\n" + "void main(void) {\n" + "   gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor ;\n" + "}";
+            this.fragmentSrc = "precision lowp float;\n" + "varying vec2 vTextureCoord;\n" + "varying vec4 vColor;\n" + "uniform sampler2D uSampler;\n" + "void main(void) {\n" + "gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor ;\n" + "}";
             this.gl = gl;
             this.init();
         }
@@ -99,12 +109,97 @@ var egret;
                 this.colorAttribute = 2;
             }
             this.attributes = [this.aVertexPosition, this.aTextureCoord, this.colorAttribute];
+            for (var key in this.uniforms) {
+                this.uniforms[key].uniformLocation = gl.getUniformLocation(program, key);
+            }
+            this.initUniforms();
             this.program = program;
+        };
+        EgretShader.prototype.initUniforms = function () {
+            if (!this.uniforms) {
+                return;
+            }
+            var gl = this.gl;
+            var uniform;
+            for (var key in this.uniforms) {
+                uniform = this.uniforms[key];
+                var type = uniform.type;
+                if (type === 'mat2' || type === 'mat3' || type === 'mat4') {
+                    uniform.glMatrix = true;
+                    uniform.glValueLength = 1;
+                    if (type === 'mat2') {
+                        uniform.glFunc = gl.uniformMatrix2fv;
+                    }
+                    else if (type === 'mat3') {
+                        uniform.glFunc = gl.uniformMatrix3fv;
+                    }
+                    else if (type === 'mat4') {
+                        uniform.glFunc = gl.uniformMatrix4fv;
+                    }
+                }
+                else {
+                    uniform.glFunc = gl['uniform' + type];
+                    if (type === '2f' || type === '2i') {
+                        uniform.glValueLength = 2;
+                    }
+                    else if (type === '3f' || type === '3i') {
+                        uniform.glValueLength = 3;
+                    }
+                    else if (type === '4f' || type === '4i') {
+                        uniform.glValueLength = 4;
+                    }
+                    else {
+                        uniform.glValueLength = 1;
+                    }
+                }
+            }
+        };
+        EgretShader.prototype.syncUniforms = function () {
+            if (!this.uniforms) {
+                return;
+            }
+            var uniform;
+            var gl = this.gl;
+            for (var key in this.uniforms) {
+                uniform = this.uniforms[key];
+                if (uniform.glValueLength === 1) {
+                    if (uniform.glMatrix === true) {
+                        uniform.glFunc.call(gl, uniform.uniformLocation, uniform.transpose, uniform.value);
+                    }
+                    else {
+                        uniform.glFunc.call(gl, uniform.uniformLocation, uniform.value);
+                    }
+                }
+                else if (uniform.glValueLength === 2) {
+                    uniform.glFunc.call(gl, uniform.uniformLocation, uniform.value.x, uniform.value.y);
+                }
+                else if (uniform.glValueLength === 3) {
+                    uniform.glFunc.call(gl, uniform.uniformLocation, uniform.value.x, uniform.value.y, uniform.value.z);
+                }
+                else if (uniform.glValueLength === 4) {
+                    uniform.glFunc.call(gl, uniform.uniformLocation, uniform.value.x, uniform.value.y, uniform.value.z, uniform.value.w);
+                }
+            }
         };
         return EgretShader;
     })();
     egret.EgretShader = EgretShader;
     EgretShader.prototype.__class__ = "egret.EgretShader";
+    var ColorTransformShader = (function (_super) {
+        __extends(ColorTransformShader, _super);
+        function ColorTransformShader(gl) {
+            _super.call(this, gl);
+            this.fragmentSrc = "precision mediump float;\n" + "varying vec2 vTextureCoord;\n" + "varying vec4 vColor;\n" + "uniform float invert;\n" + "uniform mat4 matrix;\n" + "uniform vec4 colorAdd;\n" + "uniform sampler2D uSampler;\n" + "void main(void) {\n" + "vec4 locColor = texture2D(uSampler, vTextureCoord) * matrix;\n" + "if(locColor.a != 0.0){\n" + "locColor += colorAdd;\n" + "}\n" + "gl_FragColor = locColor;\n" + "}";
+            this.uniforms = {
+                matrix: { type: 'mat4', value: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] },
+                colorAdd: { type: '4f', value: { x: 0, y: 0, z: 0, w: 0 } }
+            };
+            this.init();
+        }
+        return ColorTransformShader;
+    })(EgretShader);
+    egret.ColorTransformShader = ColorTransformShader;
+    ColorTransformShader.prototype.__class__ = "egret.ColorTransformShader";
     var PrimitiveShader = (function () {
         function PrimitiveShader(gl) {
             this.program = null;

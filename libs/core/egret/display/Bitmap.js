@@ -126,13 +126,13 @@ var egret;
                 }
             }
             else {
-                Bitmap.drawRepeatImage(renderContext, thisObject, destW, destH);
+                Bitmap.drawRepeatImage(renderContext, thisObject, destW, destH, thisObject.fillMode);
             }
         };
         /**
          * 绘制平铺位图
          */
-        Bitmap.drawRepeatImage = function (renderContext, data, destWidth, destHeight) {
+        Bitmap.drawRepeatImage = function (renderContext, data, destWidth, destHeight, repeat) {
             var texture = data._texture_to_render;
             if (!texture) {
                 return;
@@ -146,13 +146,7 @@ var egret;
             var destX = texture._offsetX;
             var destY = texture._offsetY;
             var renderFilter = egret.RenderFilter.getInstance();
-            for (var x = destX; x < destWidth; x += textureWidth) {
-                for (var y = destY; y < destHeight; y += textureHeight) {
-                    var destW = Math.min(sourceWidth, destWidth - x);
-                    var destH = Math.min(sourceHeight, destHeight - y);
-                    renderFilter.drawImage(renderContext, data, sourceX, sourceY, destW, destH, x, y, destW, destH);
-                }
-            }
+            renderFilter.drawImage(renderContext, data, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
         };
         /**
          * 绘制九宫格位图

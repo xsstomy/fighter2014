@@ -51,6 +51,7 @@ declare module egret {
          */
         executeMainLoop(callback: Function, thisObject: any): void;
         private reset();
+        private _isActivate;
         private registerListener();
     }
 }
@@ -98,7 +99,7 @@ declare module egret {
         /**
          * @member egret.HTML5CanvasRenderer#canvasContext
          */
-        canvasContext: any;
+        canvasContext: CanvasRenderingContext2D;
         private _matrixA;
         private _matrixB;
         private _matrixC;
@@ -113,7 +114,8 @@ declare module egret {
         private createCanvas();
         clearScreen(): void;
         clearRect(x: number, y: number, w: number, h: number): void;
-        drawImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any): void;
+        drawImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any, repeat?: any): void;
+        drawRepeatImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any, repeat: any): void;
         setTransform(matrix: Matrix): void;
         setAlpha(alpha: number, blendMode: string): void;
         private blendModes;
@@ -207,7 +209,8 @@ declare module egret {
         private setBlendMode(blendMode);
         private currentBaseTexture;
         private currentBatchSize;
-        drawImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any): void;
+        drawRepeatImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any, repeat: any): void;
+        drawImage(texture: Texture, sourceX: any, sourceY: any, sourceWidth: any, sourceHeight: any, destX: any, destY: any, destWidth: any, destHeight: any, repeat?: any): void;
         private _draw();
         private worldTransform;
         setTransform(matrix: Matrix): void;
@@ -218,6 +221,8 @@ declare module egret {
         private maskDataFreeList;
         pushMask(mask: Rectangle): void;
         popMask(): void;
+        private colorTransformMatrix;
+        setGlobalColorTransform(colorTransformMatrix: any[]): void;
         private canvasContext;
         setupFont(textField: TextField): void;
         measureText(text: string): number;
@@ -299,8 +304,10 @@ declare module egret {
         private attribState;
         private tempAttribState;
         constructor(gl: any);
+        currentShader: any;
         defaultShader: EgretShader;
         primitiveShader: PrimitiveShader;
+        colorTransformShader: ColorTransformShader;
         setContext(gl: any): void;
         activateShader(shader: any): void;
         private setAttribs(attribs);
@@ -309,7 +316,7 @@ declare module egret {
         private defaultVertexSrc;
         private gl;
         program: any;
-        private fragmentSrc;
+        fragmentSrc: string;
         private uSampler;
         projectionVector: any;
         private offsetVector;
@@ -318,8 +325,30 @@ declare module egret {
         aTextureCoord: any;
         colorAttribute: any;
         attributes: any[];
+        uniforms: any;
         constructor(gl: any);
-        private init();
+        init(): void;
+        initUniforms(): void;
+        syncUniforms(): void;
+    }
+    class ColorTransformShader extends EgretShader {
+        fragmentSrc: string;
+        uniforms: {
+            matrix: {
+                type: string;
+                value: number[];
+            };
+            colorAdd: {
+                type: string;
+                value: {
+                    x: number;
+                    y: number;
+                    z: number;
+                    w: number;
+                };
+            };
+        };
+        constructor(gl: any);
     }
     class PrimitiveShader {
         private gl;

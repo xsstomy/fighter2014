@@ -60,6 +60,7 @@ var egret;
              * @member {string} egret.URLLoader#dataFormat
              */
             this.dataFormat = egret.URLLoaderDataFormat.TEXT;
+            this._status = -1;
             if (request) {
                 this.load(request);
             }

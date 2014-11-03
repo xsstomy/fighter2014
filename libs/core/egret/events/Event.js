@@ -299,6 +299,16 @@ var egret;
          * @constant {string} egret.Event.CHANGE
          */
         Event.CHANGE = "change";
+        /**
+         * 游戏激活
+         * @constant {string} egret.Event.ACTIVATE
+         */
+        Event.ACTIVATE = "activate";
+        /**
+         * 取消激活
+         * @constant {string} egret.Event.DEACTIVATE
+         */
+        Event.DEACTIVATE = "deactivate";
         return Event;
     })(egret.HashObject);
     egret.Event = Event;

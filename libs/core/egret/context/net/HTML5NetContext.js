@@ -58,8 +58,8 @@ var egret;
             }
             var request = loader._request;
             var xhr = this.getXHR();
-            xhr.onerror = onLoadError;
             xhr.onload = onLoadComplete;
+            xhr.onreadystatechange = onReadyStateChange;
             var url = egret.NetContext._getUrl(request);
             xhr.open(request.method, url, true);
             this.setResponseType(xhr, loader.dataFormat);
@@ -75,10 +75,17 @@ var egret;
                 xhr.setRequestHeader("Content-Type", "multipart/form-data");
                 xhr.send(request.data);
             }
-            function onLoadError(event) {
-                egret.IOErrorEvent.dispatchIOErrorEvent(loader);
+            function onReadyStateChange() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status != loader._status) {
+                        loader._status = xhr.status;
+                        egret.HTTPStatusEvent.dispatchHTTPStatusEvent(loader, xhr.status);
+                    }
+                    if (xhr.status >= 400 || xhr.status == 0) {
+                        egret.IOErrorEvent.dispatchIOErrorEvent(loader);
+                    }
+                }
             }
-            ;
             function onLoadComplete(event) {
                 switch (loader.dataFormat) {
                     case egret.URLLoaderDataFormat.TEXT:
@@ -96,7 +103,6 @@ var egret;
                 }
                 egret.__callAsync(egret.Event.dispatchEvent, egret.Event, loader, egret.Event.COMPLETE);
             }
-            ;
         };
         HTML5NetContext.prototype.loadSound = function (loader) {
             var request = loader._request;

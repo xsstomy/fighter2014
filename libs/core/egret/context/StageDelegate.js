@@ -235,7 +235,8 @@ var egret;
          */
         ContentStrategy.prototype._apply = function (delegate, designedResolutionWidth, designedResolutionHeight) {
         };
-        ContentStrategy.prototype.setEgretSize = function (w, h, styleW, styleH, top) {
+        ContentStrategy.prototype.setEgretSize = function (w, h, styleW, styleH, left, top) {
+            if (left === void 0) { left = 0; }
             if (top === void 0) { top = 0; }
             egret.StageDelegate.getInstance()._stageWidth = w;
             egret.StageDelegate.getInstance()._stageHeight = h;
@@ -328,7 +329,8 @@ var egret;
             if (this.minHeight != 0) {
                 scale2 = Math.min(1, designH / this.minHeight);
             }
-            this.setEgretSize(designW, designH / scale2, viewPortWidth * scale2, viewPortHeight);
+            var offsetX = viewPortWidth * (1 - scale2) / 2;
+            this.setEgretSize(designW, designH / scale2, viewPortWidth * scale2, viewPortHeight, offsetX);
             delegate._scaleX = scale * scale2;
             delegate._scaleY = scale * scale2;
         };
@@ -383,7 +385,8 @@ var egret;
          * @param designedResolutionHeight {number}
          */
         NoScale.prototype._apply = function (delegate, designedResolutionWidth, designedResolutionHeight) {
-            this.setEgretSize(designedResolutionWidth, designedResolutionHeight, designedResolutionWidth, designedResolutionHeight);
+            var offsetX = Math.floor((designedResolutionWidth - designedResolutionWidth) / 2);
+            this.setEgretSize(designedResolutionWidth, designedResolutionHeight, designedResolutionWidth, designedResolutionHeight, offsetX);
             delegate._scaleX = 1;
             delegate._scaleY = 1;
         };
@@ -403,16 +406,19 @@ var egret;
          * @param designedResolutionHeight {number}
          */
         ShowAll.prototype._apply = function (delegate, designedResolutionWidth, designedResolutionHeight) {
-            var viewPortWidth = this._getClientWidth(); //分辨率宽
-            var viewPortHeight = this._getClientHeight(); //分辨率高
+            var clientWidth = this._getClientWidth(); //分辨率宽
+            var clientHeight = this._getClientHeight(); //分辨率宽
+            var viewPortWidth = clientWidth;
+            var viewPortHeight = clientHeight;
             var scale = (viewPortWidth / designedResolutionWidth < viewPortHeight / designedResolutionHeight) ? viewPortWidth / designedResolutionWidth : viewPortHeight / designedResolutionHeight;
             var designW = designedResolutionWidth;
             var designH = designedResolutionHeight;
             var viewPortWidth = designW * scale;
             var viewPortHeight = designH * scale;
             var scale2 = 1;
-            delegate._offSetY = Math.floor((this._getClientHeight() - viewPortHeight) / 2);
-            this.setEgretSize(designW, designH / scale2, viewPortWidth * scale2, viewPortHeight, delegate._offSetY);
+            var offsetX = Math.floor((clientWidth - viewPortWidth) / 2);
+            delegate._offSetY = Math.floor((clientHeight - viewPortHeight) / 2);
+            this.setEgretSize(designW, designH / scale2, viewPortWidth * scale2, viewPortHeight, offsetX, delegate._offSetY);
             delegate._scaleX = scale * scale2;
             delegate._scaleY = scale * scale2;
         };

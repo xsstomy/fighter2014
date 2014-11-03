@@ -92,7 +92,8 @@ var egret;
             //            this.canvasContext.fillRect(x, y, w, h);
             this.canvasContext.clearRect(x, y, w, h);
         };
-        HTML5CanvasRenderer.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
+        HTML5CanvasRenderer.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            if (repeat === void 0) { repeat = undefined; }
             var scale = egret.MainContext.instance.rendererContext.texture_scale_factor;
             sourceX = sourceX / scale;
             sourceY = sourceY / scale;
@@ -105,9 +106,34 @@ var egret;
             destX += this._transformTx;
             destY += this._transformTy;
             var beforeDraw = egret.getTimer();
-            this.canvasContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-            _super.prototype.drawImage.call(this, image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+            if (repeat === undefined) {
+                this.canvasContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+            }
+            else {
+                this.drawRepeatImage(texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
+            }
+            _super.prototype.drawImage.call(this, image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
             this.renderCost += egret.getTimer() - beforeDraw;
+        };
+        HTML5CanvasRenderer.prototype.drawRepeatImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            if (texture['pattern'] === undefined) {
+                var image = texture._bitmapData;
+                var tempImage = image;
+                if (image.width != sourceWidth || image.height != sourceHeight) {
+                    var tempCanvas = document.createElement("canvas");
+                    tempCanvas.width = sourceWidth;
+                    tempCanvas.height = sourceHeight;
+                    tempCanvas.getContext("2d").drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+                    tempImage = tempCanvas;
+                }
+                var pat = this.canvasContext.createPattern(tempImage, repeat);
+                texture['pattern'] = pat;
+            }
+            var pattern = texture['pattern'];
+            this.canvasContext.fillStyle = pattern;
+            this.canvasContext.translate(destX, destY);
+            this.canvasContext.fillRect(0, 0, destWidth, destHeight);
+            this.canvasContext.translate(-destX, -destY);
         };
         HTML5CanvasRenderer.prototype.setTransform = function (matrix) {
             //在没有旋转缩放斜切的情况下，先不进行矩阵偏移，等下次绘制的时候偏移

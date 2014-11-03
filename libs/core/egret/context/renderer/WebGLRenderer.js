@@ -42,7 +42,7 @@ var egret;
         function WebGLRenderer(canvas) {
             _super.call(this);
             this.size = 2000;
-            this.vertSize = 6;
+            this.vertSize = 5;
             this.contextLost = false;
             this.glContextId = 0;
             this.currentBlendMode = "";
@@ -143,7 +143,7 @@ var egret;
         WebGLRenderer.prototype.initBlendMode = function () {
             this.blendModesWebGL = {};
             this.blendModesWebGL[egret.BlendMode.NORMAL] = [this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA];
-            this.blendModesWebGL[egret.BlendMode.ADD] = [this.gl.SRC_ALPHA, this.gl.DST_ALPHA];
+            this.blendModesWebGL[egret.BlendMode.ADD] = [this.gl.SRC_ALPHA, this.gl.ONE];
         };
         WebGLRenderer.prototype.start = function () {
             if (this.contextLost) {
@@ -153,7 +153,15 @@ var egret;
             gl.activeTexture(gl.TEXTURE0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-            var shader = this.shaderManager.defaultShader;
+            var shader;
+            if (this.colorTransformMatrix) {
+                shader = this.shaderManager.colorTransformShader;
+            }
+            else {
+                shader = this.shaderManager.defaultShader;
+            }
+            this.shaderManager.activateShader(shader);
+            shader.syncUniforms();
             gl.uniform2f(shader.projectionVector, this.projectionX, this.projectionY);
             var stride = this.vertSize * 4;
             gl.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, stride, 0);
@@ -180,13 +188,28 @@ var egret;
             if (this.currentBlendMode != blendMode) {
                 var blendModeWebGL = this.blendModesWebGL[blendMode];
                 if (blendModeWebGL) {
+                    this._draw();
                     this.gl.blendFunc(blendModeWebGL[0], blendModeWebGL[1]);
                     this.currentBlendMode = blendMode;
                 }
             }
         };
-        WebGLRenderer.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
+        WebGLRenderer.prototype.drawRepeatImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            for (var x = destX; x < destWidth; x += sourceWidth) {
+                for (var y = destY; y < destHeight; y += sourceHeight) {
+                    var destW = Math.min(sourceWidth, destWidth - x);
+                    var destH = Math.min(sourceHeight, destHeight - y);
+                    this.drawImage(texture, sourceX, sourceY, destW, destH, x, y, destW, destH);
+                }
+            }
+        };
+        WebGLRenderer.prototype.drawImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
+            if (repeat === void 0) { repeat = undefined; }
             if (this.contextLost) {
+                return;
+            }
+            if (repeat !== undefined) {
+                this.drawRepeatImage(texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
                 return;
             }
             var texture_scale_factor = egret.MainContext.instance.rendererContext.texture_scale_factor;
@@ -236,43 +259,38 @@ var egret;
             var vertices = this.vertices;
             var index = this.currentBatchSize * 4 * this.vertSize;
             var alpha = this.worldAlpha;
-            var tint = 0xFFFFFF;
             // xy
             vertices[index++] = tx;
             vertices[index++] = ty;
             // uv
             vertices[index++] = sourceX;
             vertices[index++] = sourceY;
-            // color
+            // alpha
             vertices[index++] = alpha;
-            vertices[index++] = tint;
             // xy
             vertices[index++] = a * w + tx;
             vertices[index++] = b * w + ty;
             // uv
             vertices[index++] = sourceWidth + sourceX;
             vertices[index++] = sourceY;
-            // color
+            // alpha
             vertices[index++] = alpha;
-            vertices[index++] = tint;
             // xy
             vertices[index++] = a * w + c * h + tx;
             vertices[index++] = d * h + b * w + ty;
             // uv
             vertices[index++] = sourceWidth + sourceX;
             vertices[index++] = sourceHeight + sourceY;
-            // color
+            // alpha
             vertices[index++] = alpha;
-            vertices[index++] = tint;
             // xy
             vertices[index++] = c * h + tx;
             vertices[index++] = d * h + ty;
             // uv
             vertices[index++] = sourceX;
             vertices[index++] = sourceHeight + sourceY;
-            // color
+            // alpha
             vertices[index++] = alpha;
-            vertices[index++] = tint;
             this.currentBatchSize++;
         };
         WebGLRenderer.prototype._draw = function () {
@@ -357,6 +375,21 @@ var egret;
             }
             if (this.maskList.length == 0) {
                 gl.disable(gl.STENCIL_TEST);
+            }
+        };
+        WebGLRenderer.prototype.setGlobalColorTransform = function (colorTransformMatrix) {
+            if (this.colorTransformMatrix != colorTransformMatrix) {
+                this._draw();
+                this.colorTransformMatrix = colorTransformMatrix;
+                if (colorTransformMatrix) {
+                    var colorTransformMatrix = colorTransformMatrix.concat();
+                    var shader = this.shaderManager.colorTransformShader;
+                    shader.uniforms.colorAdd.value.w = colorTransformMatrix.splice(19, 1)[0] / 255.0;
+                    shader.uniforms.colorAdd.value.z = colorTransformMatrix.splice(14, 1)[0] / 255.0;
+                    shader.uniforms.colorAdd.value.y = colorTransformMatrix.splice(9, 1)[0] / 255.0;
+                    shader.uniforms.colorAdd.value.x = colorTransformMatrix.splice(4, 1)[0] / 255.0;
+                    shader.uniforms.matrix.value = colorTransformMatrix;
+                }
             }
         };
         WebGLRenderer.prototype.setupFont = function (textField) {

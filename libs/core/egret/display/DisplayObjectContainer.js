@@ -313,10 +313,16 @@ var egret;
             var l = this._children.length;
             for (var i = 0; i < l; i++) {
                 var child = this._children[i];
-                var bounds;
-                if (!child._visible || !(bounds = egret.DisplayObject.getTransformBounds(child._getSize(egret.Rectangle.identity), child._getMatrix()))) {
+                if (!child._visible) {
                     continue;
                 }
+                var childBounds = child.getBounds(egret.Rectangle.identity, false);
+                var childBoundsX = childBounds.x;
+                var childBoundsY = childBounds.y;
+                var childBoundsW = childBounds.width;
+                var childBoundsH = childBounds.height;
+                var childMatrix = child._getMatrix();
+                var bounds = egret.DisplayObject.getTransformBounds(egret.Rectangle.identity.initialize(childBoundsX, childBoundsY, childBoundsW, childBoundsH), childMatrix);
                 var x1 = bounds.x, y1 = bounds.y, x2 = bounds.width + bounds.x, y2 = bounds.height + bounds.y;
                 if (x1 < minX || i == 0) {
                     minX = x1;
@@ -349,7 +355,7 @@ var egret;
                 return null;
             }
             if (this._scrollRect) {
-                if (x < 0 || y < 0 || x > this._scrollRect.width || y > this._scrollRect.height) {
+                if (x < this._scrollRect.x || y < this._scrollRect.y || x > this._scrollRect.x + this._scrollRect.width || y > this._scrollRect.y + this._scrollRect.height) {
                     return null;
                 }
             }
@@ -363,7 +369,12 @@ var egret;
             var touchChildren = this._touchChildren; //这里不用考虑父级的touchChildren，从父级调用下来过程中已经判断过了。
             for (var i = l - 1; i >= 0; i--) {
                 var child = children[i];
-                var mtx = child._getMatrix().invert();
+                var mtx = child._getMatrix();
+                var scrollRect = child._scrollRect;
+                if (scrollRect) {
+                    mtx.append(1, 0, 0, 1, -scrollRect.x, -scrollRect.y);
+                }
+                mtx.invert();
                 var point = egret.Matrix.transformCoords(mtx, x, y);
                 var childHitTestResult = child.hitTest(point.x, point.y, true);
                 if (childHitTestResult) {
