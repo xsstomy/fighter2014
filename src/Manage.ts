@@ -1,3 +1,4 @@
+///<reference path="../libs/core/core.d.ts"/>
 /**
  * Created by acer on 2014/10/10.
  */
@@ -245,7 +246,7 @@ class GKManage extends egret.Sprite
             enemy.setShootFrameTime(1000);
             enemy.addEventListener("createBullet",this.doCreateBullet,this);
             enemy.active();
-            //enemy.fire();
+            enemy.fire();
 
         }
 
@@ -253,7 +254,7 @@ class GKManage extends egret.Sprite
 
     private doCreateBullet(evt:egret.Event)
     {
-        Config.buttetCode++;//子弹唯一识别码
+        Config.bulletCode++;//子弹唯一识别码
 
         var shootWay = evt.target.shootWay;// 射击方式，从配置文件中读取子弹的组合数据
 
@@ -279,7 +280,7 @@ class GKManage extends egret.Sprite
 
             bullet.setBulletInTime(200);
             bullet.setAttackPower(attackPower);
-            bullet.setCode(Config.buttetCode);
+            bullet.setCode(Config.bulletCode);
             bullet.setSpeedX(speedx);
             bullet.setSpeedY(speedy);
             bullet.setX(x);

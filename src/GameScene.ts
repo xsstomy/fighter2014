@@ -73,7 +73,7 @@ class GameLayer extends egret.Sprite
 
             var bullet:Bullet = BulletManage.produce(new plainbulletmap(),0);
             bullet.setAttackPower(1);
-            bullet.setCode(Config.buttetCode);
+            bullet.setCode(Config.bulletCode);
             bullet.setSpeedX(speedx);
             bullet.setSpeedY(speedy);
             bullet.setX(x);

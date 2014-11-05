@@ -4,7 +4,7 @@
 
    class Config
 {
-    public static buttetCode:number = 0;//子弹唯一识别码
+    public static bulletCode:number = 0;//子弹唯一识别码
     public static leadPlain:LeadPlain;//主角飞机
     public static gkmanage:GKManage ;//  关卡控制管理类
     public static BulletLayer:egret.Sprite;  //子弹层

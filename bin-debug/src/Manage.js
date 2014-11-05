@@ -1,3 +1,4 @@
+///<reference path="../libs/core/core.d.ts"/>
 /**
  * Created by acer on 2014/10/10.
  */
@@ -205,10 +206,11 @@ var GKManage = (function (_super) {
             enemy.setShootFrameTime(1000);
             enemy.addEventListener("createBullet", this.doCreateBullet, this);
             enemy.active();
+            enemy.fire();
         }
     };
     GKManage.prototype.doCreateBullet = function (evt) {
-        Config.buttetCode++; //子弹唯一识别码
+        Config.bulletCode++; //子弹唯一识别码
         var shootWay = evt.target.shootWay; // 射击方式，从配置文件中读取子弹的组合数据
         if (BULLET_SHOOT_DATA[shootWay].length == evt.target.curShootWayIndex) {
             evt.target.curShootWayIndex = 0;
@@ -228,7 +230,7 @@ var GKManage = (function (_super) {
             var y = evt.target.shootY + evt.target.y + offsetShootPosY;
             bullet.setBulletInTime(200);
             bullet.setAttackPower(attackPower);
-            bullet.setCode(Config.buttetCode);
+            bullet.setCode(Config.bulletCode);
             bullet.setSpeedX(speedx);
             bullet.setSpeedY(speedy);
             bullet.setX(x);
