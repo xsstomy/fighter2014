@@ -11,11 +11,10 @@ class GameLayer extends egret.Sprite
 //    private myLeadPlain:any;//主角
 //    private plainManage:PlainManage;
 //    private bulletMange:BulletManage;
-
-    private leadPlainBulletArray:Array<any>;
+    private dataDealLayer:DataDealLayer;//数据处理层
     private enemybulletArray:Array<any>;
     private enemyplainArray:Array<any>;
-    private gkmanage:GKManage;
+    private event:DieEvent;
     public constructor()
     {
         super();
@@ -25,9 +24,9 @@ class GameLayer extends egret.Sprite
     private init()
     {
 
-        this.gkmanage = new GKManage(this);
-
-
+        Config.gkmanage = new GKManage(this);
+        this.dataDealLayer = new DataDealLayer();
+        this.event = new DieEvent(GAME_STARTED);
         this.width = egret.MainContext.instance.stage.stageWidth;
         this.height  = egret.MainContext.instance.stage.stageHeight;
         Config.leadPlain = new LeadPlain(new myplainmap());
@@ -55,7 +54,8 @@ class GameLayer extends egret.Sprite
         Config.leadPlain.fire();
         Config.leadPlain.addEventListener("createBullet",this.docreateBullet,this);
 
-        this.gkmanage.start();
+        Config.gkmanage.start();
+        this.dataDealLayer.dispatchEvent(this.event);
     }
 
     private docreateBullet(evt:egret.Event)
@@ -78,9 +78,10 @@ class GameLayer extends egret.Sprite
             bullet.setSpeedY(speedy);
             bullet.setX(x);
             bullet.setY(y);
+            bullet.setBelond(LEAD_BULLET);
             Config.BulletLayer.addChild( bullet );
-
-            this.gkmanage.activeEnemyBulletArray.push(bullet);
+            Config.leadPlainBulletArray.push(bullet);
+            Config.gkmanage.activeEnemyBulletArray.push(bullet);
             bullet.active();
         }
     }
@@ -147,5 +148,28 @@ class DataDealLayer extends egret.Sprite
     private dealEvent(evt:DieEvent)
     {
 
+    }
+    private dealHit(evt:DieEvent)
+    {
+        this.addEventListener(egret.Event.ENTER_FRAME,this.testHit,this);
+    }
+
+    private testHit()
+    {
+
+    }
+    public static doTestHit(aimrect:any,hitrect:any):boolean
+    {
+        var aim_cx = aimrect.x+aimrect.width/2;
+        var aim_cy = aimrect.y+aimrect.height/2;
+        var hit_cx = hitrect.x+hitrect.width/2;
+        var hit_cy = hitrect.y+hitrect.height/2;
+
+        var dx = Math.abs(aim_cx-hit_cx);
+        var dy = Math.abs(aim_cy-hit_cy);
+        if(dx<=Math.abs(hitrect.width/2+aimrect.width/2) && dy<=Math.abs(hitrect.height/2+aimrect.height/2))
+            return true;
+
+        return false;
     }
 }

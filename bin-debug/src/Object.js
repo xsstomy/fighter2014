@@ -120,6 +120,7 @@ var Plain = (function (_super) {
     };
     // 需要重写
     Plain.prototype.checkIsDie = function () {
+        console.log("sile");
     };
     //需要重写
     Plain.prototype.active = function () {
@@ -144,6 +145,9 @@ var LeadPlain = (function (_super) {
             this.die();
     };
     LeadPlain.prototype.dodie = function () {
+        this.x = -100;
+        this.y = -100;
+        console.log("死亡");
         if (this.parent)
             this.parent.removeChild(this);
         this.event.eventObj = this;
@@ -162,48 +166,27 @@ var EnemyPlain = (function (_super) {
         _super.call(this, obj);
     }
     EnemyPlain.prototype.active = function () {
+        this.isDing = false;
         this.init();
         this.event = new DieEvent(PLAIN_DEFINED_EVENT);
-        this.dealEnemyTrack();
-    };
-    EnemyPlain.prototype.dealEnemyTrack = function () {
-        this.enemyTrackIndex = ENEMY_TRACK_DATA[this.moveTrack];
-        this.testMoveMode = new MoveMode();
-        this.testMoveMode.clear();
-        this.isDie = this.enemyTrackIndex[0]["isDie"];
-        this.isloop = this.enemyTrackIndex[0]["isLoop"];
-        this.isratote = this.enemyTrackIndex[0]["isRatote"];
-        this.updatetime = this.enemyTrackIndex[0]["updatetime"];
-        for (var i = 1; i < this.enemyTrackIndex.length; i++) {
-            var obj = this.enemyTrackIndex[i];
-            var nodex = obj["nodeX"];
-            var nodey = obj["nodeY"];
-            var distancetime = obj["distanceTime"];
-            this.testMoveMode.addPoint(nodex, nodey, distancetime);
-        }
-        this.testMoveMode.road.loop = this.isloop; ///路劲是否循环
-        this.testMoveMode.load.setWork(this.isratote); // 是否启动自传
-        this.testMoveMode.road.toDie = this.isDie; //路劲到终点死亡
-        this.testMoveMode.load.power = 60; //  终点移动半径
-        this.testMoveMode.load.angle = 0; //开始角度
-        this.testMoveMode.load.workAngle = 60 / 1000; //    度数/1000毫秒
-        this.addEventListener(egret.Event.ENTER_FRAME, this.onFrame, this);
-    };
-    EnemyPlain.prototype.onFrame = function () {
-        //this.x += this.speedX;
-        //this.y += this.speedY;
-        this.testMoveMode.moveTheObj(this, this.offsetX, this.offsetY, this.updatetime);
-        //this.checkIsDie();
+        //this.dealEnemyTrack();
+        this.action = ActionManage.getInstance().dealEnemyTrack(this);
     };
     EnemyPlain.prototype.checkIsDie = function () {
         if (this.hp <= 0 || this.x < 0 || this.x > 480 || this.y < 0 || this.y > 800) {
-            this.removeEventListener(egret.Event.ENTER_FRAME, this.onFrame, this);
             this.die();
         }
     };
+    EnemyPlain.prototype.getIsDie = function () {
+        return this.isDing;
+    };
     EnemyPlain.prototype.dodie = function () {
+        //console.log("敌人死亡");
         if (this.parent)
             this.parent.removeChild(this);
+        this.isDing = true;
+        this.x = -100;
+        this.y = -100;
         this.event.eventObj = this;
         this.event.eventtype = DESTORY;
         Config.gkmanage.dispatchEvent(this.event);
@@ -218,9 +201,11 @@ var Bullet = (function (_super) {
     __extends(Bullet, _super);
     function Bullet(obj) {
         _super.call(this);
+        this.isDoTestHit = false; //是否正在检测碰撞
         this.obj = obj;
     }
     Bullet.prototype.init = function () {
+        this.rect = new Rect(0, 0, 0, 0);
         this.isdie = false;
         this.typeid = this.obj.typeid;
         this.event = new DieEvent(BULLET_DEFINED_EVENT);
@@ -271,23 +256,71 @@ var Bullet = (function (_super) {
     Bullet.prototype.setY = function (starty) {
         this.y = starty;
     };
+    /**
+     * 设置子弹归属
+     * @param str
+     */
+    Bullet.prototype.setBelond = function (str) {
+        this.typeBelond = str;
+    };
     Bullet.prototype.active = function () {
         this.init();
     };
     Bullet.prototype.onFrame = function () {
         this.x += this.speedX;
         this.y += this.speedY;
+        if (!this.isDoTestHit) {
+            this.typeBelond == LEAD_BULLET ? this.doTestHitEnemy() : this.doTestHitLead();
+        }
         this.isDie();
     };
     Bullet.prototype.isDie = function () {
         if (this.x < 0 || this.x > 480 || this.y < 0 || this.y > 800) {
-            this.removeEventListener(egret.Event.ENTER_FRAME, this.onFrame, this);
-            this.event.eventObj = this;
-            this.event.eventtype = DESTORY;
-            Config.gkmanage.dispatchEvent(this.event);
-            if (this.parent)
-                this.parent.removeChild(this);
+            this.die();
         }
+    };
+    Bullet.prototype.die = function () {
+        this.removeEventListener(egret.Event.ENTER_FRAME, this.onFrame, this);
+        this.event.eventObj = this;
+        this.event.eventtype = DESTORY;
+        Config.gkmanage.dispatchEvent(this.event);
+        if (this.parent)
+            this.parent.removeChild(this);
+    };
+    /**
+     * 获取碰撞区域
+     * @returns {Rect}
+     */
+    Bullet.prototype.getRect = function () {
+        this.rect.x = this.x;
+        this.rect.y = this.y;
+        this.rect.width = this.width;
+        this.rect.height = this.height;
+        return this.rect;
+    };
+    Bullet.prototype.doTestHitEnemy = function () {
+        this.isDoTestHit = true;
+        var i = 0;
+        var activeEnemyArr = Config.gkmanage.getActiveEnemy();
+        while (activeEnemyArr.length > 0) {
+            if (DataDealLayer.doTestHit(this.getRect(), activeEnemyArr[i].getRect())) {
+                this.die();
+                activeEnemyArr[i].updateHp(this.attackPower);
+                break;
+            }
+            i++;
+            if (i >= activeEnemyArr.length)
+                break;
+        }
+        this.isDoTestHit = false;
+    };
+    Bullet.prototype.doTestHitLead = function () {
+        this.isDoTestHit = true;
+        if (DataDealLayer.doTestHit(this.getRect(), Config.leadPlain.getRect())) {
+            this.die();
+            Config.leadPlain.updateHp(this.attackPower);
+        }
+        this.isDoTestHit = false;
     };
     return Bullet;
 })(egret.Sprite);

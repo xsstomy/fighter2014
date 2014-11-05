@@ -18,7 +18,9 @@ var GameLayer = (function (_super) {
         this.init();
     }
     GameLayer.prototype.init = function () {
-        this.gkmanage = new GKManage(this);
+        Config.gkmanage = new GKManage(this);
+        this.dataDealLayer = new DataDealLayer();
+        this.event = new DieEvent(GAME_STARTED);
         this.width = egret.MainContext.instance.stage.stageWidth;
         this.height = egret.MainContext.instance.stage.stageHeight;
         Config.leadPlain = new LeadPlain(new myplainmap());
@@ -38,7 +40,8 @@ var GameLayer = (function (_super) {
     GameLayer.prototype.dealWithLayer = function () {
         Config.leadPlain.fire();
         Config.leadPlain.addEventListener("createBullet", this.docreateBullet, this);
-        this.gkmanage.start();
+        Config.gkmanage.start();
+        this.dataDealLayer.dispatchEvent(this.event);
     };
     GameLayer.prototype.docreateBullet = function (evt) {
         Config.buttetCode++;
@@ -57,8 +60,10 @@ var GameLayer = (function (_super) {
             bullet.setSpeedY(speedy);
             bullet.setX(x);
             bullet.setY(y);
+            bullet.setBelond(LEAD_BULLET);
             Config.BulletLayer.addChild(bullet);
-            this.gkmanage.activeEnemyBulletArray.push(bullet);
+            Config.leadPlainBulletArray.push(bullet);
+            Config.gkmanage.activeEnemyBulletArray.push(bullet);
             bullet.active();
         }
     };
@@ -107,6 +112,22 @@ var DataDealLayer = (function (_super) {
         this.addEventListener(PROP_TYPE, this.dealEvent, this);
     };
     DataDealLayer.prototype.dealEvent = function (evt) {
+    };
+    DataDealLayer.prototype.dealHit = function (evt) {
+        this.addEventListener(egret.Event.ENTER_FRAME, this.testHit, this);
+    };
+    DataDealLayer.prototype.testHit = function () {
+    };
+    DataDealLayer.doTestHit = function (aimrect, hitrect) {
+        var aim_cx = aimrect.x + aimrect.width / 2;
+        var aim_cy = aimrect.y + aimrect.height / 2;
+        var hit_cx = hitrect.x + hitrect.width / 2;
+        var hit_cy = hitrect.y + hitrect.height / 2;
+        var dx = Math.abs(aim_cx - hit_cx);
+        var dy = Math.abs(aim_cy - hit_cy);
+        if (dx <= Math.abs(hitrect.width / 2 + aimrect.width / 2) && dy <= Math.abs(hitrect.height / 2 + aimrect.height / 2))
+            return true;
+        return false;
     };
     return DataDealLayer;
 })(egret.Sprite);

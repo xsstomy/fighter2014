@@ -29,6 +29,10 @@ var PLAIN_ENEMY_TYPE ="ENEMY";
 
 var PLAIN_ENEMY_BOOS ="BOSS";
 
+var LEAD_BULLET = "LEAD_BULLET";
+
+var ENEMY_BULLET = "ENEMY_BULLET";
+
 var DESTORY = "2";
 
 var PROP_TYPE = "propType";
@@ -40,3 +44,5 @@ var ENEMY_GK_DATA = [];//关卡数据
 var ENEMY_TRACK_DATA = [];//怪物轨迹数据
 
 var BULLET_SHOOT_DATA = [];//子弹轨迹和阵型数据
+
+var GAME_STARTED = "true";//场景游戏开始，即主角开始发射子弹

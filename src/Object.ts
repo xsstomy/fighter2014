@@ -177,7 +177,7 @@ class Plain extends egret.Sprite
 // 需要重写
     public checkIsDie()
     {
-
+        console.log("sile");
     }
 
     //需要重写
@@ -216,7 +216,9 @@ class LeadPlain extends Plain
 
     public dodie()
     {
-
+        this.x = -100;
+        this.y = -100;
+        console.log("死亡");
         if(this.parent)
             this.parent.removeChild( this );
 
@@ -235,6 +237,7 @@ class EnemyPlain extends Plain
 {
     public event:DieEvent;
 
+    private isDing:boolean ;
     private action:any;// 飞机轨迹移动管理类
     public constructor( obj:any)
     {
@@ -243,53 +246,11 @@ class EnemyPlain extends Plain
 
     public active()
     {
-
+        this.isDing = false;
         this.init();
         this.event = new DieEvent(PLAIN_DEFINED_EVENT);
-        this.dealEnemyTrack();
-
-    }
-    private isloop:any;
-    private updatetime:any;
-    private isratote:any;
-    private isDie:any;
-    private enemyTrackIndex:any;//怪物那一条路径
-    private testMoveMode:MoveMode;
-    public dealEnemyTrack()
-    {
-        this.enemyTrackIndex = ENEMY_TRACK_DATA[this.moveTrack];
-        this.testMoveMode = new MoveMode();
-        this.testMoveMode.clear();
-        this.isDie = this.enemyTrackIndex[0]["isDie"];
-        this.isloop = this.enemyTrackIndex[0]["isLoop"];
-        this.isratote = this.enemyTrackIndex[0]["isRatote"];
-        this.updatetime = this.enemyTrackIndex[0]["updatetime"];
-
-        for(var i = 1; i < this.enemyTrackIndex.length; i++)
-        {
-            var obj = this.enemyTrackIndex[i];
-            var nodex = obj["nodeX"];
-            var nodey = obj["nodeY"];
-            var distancetime = obj["distanceTime"];
-
-            this.testMoveMode.addPoint(nodex,nodey,distancetime);
-        }
-
-        this.testMoveMode.road.loop=this.isloop; ///路劲是否循环
-        this.testMoveMode.load.setWork(this.isratote);// 是否启动自传
-        this.testMoveMode.road.toDie=this.isDie;//路劲到终点死亡
-        this.testMoveMode.load.power=60;//  终点移动半径
-        this.testMoveMode.load.angle=0;//开始角度
-        this.testMoveMode.load.workAngle=60/1000;//    度数/1000毫秒
-
-        this.addEventListener(egret.Event.ENTER_FRAME,this.onFrame,this);
-    }
-    public onFrame()
-    {
-        //this.x += this.speedX;
-        //this.y += this.speedY;
-        this.testMoveMode.moveTheObj(this,this.offsetX,this.offsetY,this.updatetime);
-        //this.checkIsDie();
+        //this.dealEnemyTrack();
+        this.action = ActionManage.getInstance().dealEnemyTrack(this);
     }
 
 
@@ -297,17 +258,22 @@ class EnemyPlain extends Plain
     {
         if( this.hp <= 0||this.x  < 0 || this.x>480|| this.y< 0|| this.y> 800)
         {
-            this.removeEventListener(egret.Event.ENTER_FRAME,this.onFrame,this);
             this.die();
         }
     }
-
+    public getIsDie():boolean
+    {
+        return this.isDing;
+    }
 
     public dodie()
     {
+        //console.log("敌人死亡");
         if(this.parent)
             this.parent.removeChild( this );
-
+        this.isDing = true;
+        this.x = -100;
+        this.y = -100;
         this.event.eventObj = this;
         this.event.eventtype = DESTORY;
         Config.gkmanage.dispatchEvent( this.event );
@@ -333,16 +299,17 @@ class Bullet extends egret.Sprite
     public event:DieEvent;
     private action:any;// 子弹轨迹移动管理类
     private moveTrack:any;// 执行那种动作轨迹
-
+    private rect:Rect;//碰撞区域
+    private typeBelond:string;//子弹属于敌人还是属于主角
     public constructor(obj:any)
     {
         super();
         this.obj = obj;
     }
 
-
     private init()
     {
+        this.rect = new Rect(0,0,0,0);
         this.isdie = false;
         this.typeid = this.obj.typeid;
         this.event = new DieEvent(BULLET_DEFINED_EVENT);
@@ -409,6 +376,14 @@ class Bullet extends egret.Sprite
         this.y = starty;
     }
 
+    /**
+     * 设置子弹归属
+     * @param str
+     */
+    public setBelond(str:string)
+    {
+        this.typeBelond = str;
+    }
     public active()
     {
         this.init();
@@ -418,23 +393,73 @@ class Bullet extends egret.Sprite
     {
         this.x += this.speedX;
         this.y += this.speedY;
+        if( !this.isDoTestHit )
+        {
+            this.typeBelond == LEAD_BULLET? this.doTestHitEnemy():this.doTestHitLead();
+        }
         this.isDie();
     }
+
 
     public isDie()
     {
         if( this.x < 0 || this.x>480|| this.y< 0|| this.y> 800)
         {
-
-            this.removeEventListener(egret.Event.ENTER_FRAME,this.onFrame,this);
-            this.event.eventObj = this;
-            this.event.eventtype = DESTORY;
-            Config.gkmanage.dispatchEvent( this.event );
-
-            if(this.parent)
-                this.parent.removeChild(this);
-
+            this.die();
         }
+    }
+
+    public die()
+    {
+        this.removeEventListener(egret.Event.ENTER_FRAME,this.onFrame,this);
+        this.event.eventObj = this;
+        this.event.eventtype = DESTORY;
+        Config.gkmanage.dispatchEvent( this.event );
+
+        if(this.parent)
+            this.parent.removeChild(this);
+    }
+    /**
+     * 获取碰撞区域
+     * @returns {Rect}
+     */
+    public getRect():Rect
+    {
+        this.rect.x = this.x;
+        this.rect.y = this.y;
+        this.rect.width = this.width;
+        this.rect.height = this.height;
+        return this.rect;
+    }
+    private isDoTestHit:boolean = false;//是否正在检测碰撞
+    private doTestHitEnemy()
+    {
+        this.isDoTestHit = true;
+        var i = 0;
+        var activeEnemyArr = Config.gkmanage.getActiveEnemy();
+        while(activeEnemyArr.length>0)
+        {
+            if( DataDealLayer.doTestHit(this.getRect(),activeEnemyArr[i].getRect()))
+            {
+                this.die();
+                activeEnemyArr[i].updateHp(this.attackPower);
+                break;
+            }
+            i++;
+            if( i >= activeEnemyArr.length)
+            break;
+        }
+        this.isDoTestHit = false;
+    }
+    private doTestHitLead()
+    {
+        this.isDoTestHit = true;
+        if(DataDealLayer.doTestHit(this.getRect(),Config.leadPlain.getRect()))
+        {
+            this.die();
+            Config.leadPlain.updateHp(this.attackPower);
+        }
+        this.isDoTestHit = false;
     }
 }
 /**

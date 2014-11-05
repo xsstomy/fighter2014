@@ -1,7 +1,6 @@
 [
     [
         [
-            {"track":1,"startPosOffsetX":20,"startPosOffsetY":50,"hp":10,"offsetShootX":25,"offsetShootY":60,"dropPropNum":-1,"score":10,"shootWay":0,"shootFrameTime":100},
             {"track":2,"startPosOffsetX":100,"startPosOffsetY":50,"hp":10,"offsetShootX":25,"offsetShootY":60,"dropPropNum":-1,"score":10,"shootWay":1,"shootFrameTime":100},
             {"track":3,"startPosOffsetX":200,"startPosOffsetY":50,"hp":10,"offsetShootX":25,"offsetShootY":60,"dropPropNum":-1,"score":10,"shootWay":1,"shootFrameTime":100}
         ],

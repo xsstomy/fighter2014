@@ -245,8 +245,8 @@ class GKManage extends egret.Sprite
             enemy.setShootFrameTime(1000);
             enemy.addEventListener("createBullet",this.doCreateBullet,this);
             enemy.active();
-            enemy.fire();
-            //this.actionManage.dealEnemyTrack(enemy);
+            //enemy.fire();
+
         }
 
     }
@@ -284,8 +284,10 @@ class GKManage extends egret.Sprite
             bullet.setSpeedY(speedy);
             bullet.setX(x);
             bullet.setY(y);
-            Config.BulletLayer.addChild( bullet );
+            bullet.setBelond(ENEMY_BULLET);
 
+            Config.BulletLayer.addChild( bullet );
+            Config.enemyPlainbulletArray.push(bullet);
             this.activeEnemyBulletArray.push(bullet);
             bullet.active();
         }
@@ -349,7 +351,7 @@ class ActionManage
     {
         //this.x += this.speedX;
         //this.y += this.speedY;
-        if( this.obj )
+        if( !this.obj.getIsDie() )
         this.testMoveMode.moveTheObj(this.obj,this.obj.offsetX,this.obj.offsetY,this.updatetime);
         else
         {
@@ -357,7 +359,7 @@ class ActionManage
             this.testMoveMode = null;
         }
 
-        this.obj.checkIsDie();
+        //this.obj.checkIsDie();
     }
 
 }
