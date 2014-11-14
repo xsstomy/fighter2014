@@ -60,7 +60,7 @@ class GameLayer extends egret.Sprite
 
     private docreateBullet(evt:egret.Event)
     {
-        Config.buttetCode++;
+        Config.bulletCode++;
         if( evt.target == Config.leadPlain )
         {
 //            console.log("子弹发射类");

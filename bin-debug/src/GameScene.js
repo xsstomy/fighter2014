@@ -44,7 +44,7 @@ var GameLayer = (function (_super) {
         this.dataDealLayer.dispatchEvent(this.event);
     };
     GameLayer.prototype.docreateBullet = function (evt) {
-        Config.buttetCode++;
+        Config.bulletCode++;
         if (evt.target == Config.leadPlain) {
             //            console.log("子弹发射类");
             //这里不需要子弹封装函数，因为子弹的表现形式在自己初始化成已经定好，属于自己的行为
@@ -55,7 +55,7 @@ var GameLayer = (function (_super) {
             var speedy = -Math.max(50, tempx);
             var bullet = BulletManage.produce(new plainbulletmap(), 0);
             bullet.setAttackPower(1);
-            bullet.setCode(Config.buttetCode);
+            bullet.setCode(Config.bulletCode);
             bullet.setSpeedX(speedx);
             bullet.setSpeedY(speedy);
             bullet.setX(x);

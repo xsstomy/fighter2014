@@ -4,7 +4,7 @@
 var Config = (function () {
     function Config() {
     }
-    Config.buttetCode = 0; //子弹唯一识别码
+    Config.bulletCode = 0; //子弹唯一识别码
     Config.leadPlainBulletArray = [];
     Config.enemyPlainbulletArray = [];
     return Config;
