@@ -30,51 +30,61 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/** @namespace egret */
 var egret;
 (function (egret) {
     /**
-     * @class egret.TimerEvent
+     * @class egret.HTTPStatusEvent
      * @classdesc
-     * 每当 Timer 对象达到由 Timer.delay 属性指定的间隔时，Timer 对象即会调度 TimerEvent 对象。
+     * 在网络请求返回 HTTP 状态代码时，应用程序将调度 HTTPStatusEvent 对象。
+     * 在错误或完成事件之前，将始终发送 HTTPStatusEvent 对象。HTTPStatusEvent 对象不一定表示错误条件；它仅反映网络堆栈提供的 HTTP 状态代码（如果有的话）。
      * @extends egret.Event
      */
-    var TimerEvent = (function (_super) {
-        __extends(TimerEvent, _super);
+    var HTTPStatusEvent = (function (_super) {
+        __extends(HTTPStatusEvent, _super);
         /**
-         *
-         * @method egret.TimerEvent#constructor
-         * @param type {string} 事件的类型。事件侦听器可以通过继承的 type 属性访问此信息。
-         * @param bubbles {boolean} 确定 Event 对象是否冒泡。事件侦听器可以通过继承的 bubbles 属性访问此信息。
-         * @param cancelable {boolean} 确定是否可以取消 Event 对象。事件侦听器可以通过继承的 cancelable 属性访问此信息。
+         * @method egret.HTTPStatusEvent#constructor
+         * @param type {string}
+         * @param bubbles {boolean}
+         * @param cancelable {boolean}
          */
-        function TimerEvent(type, bubbles, cancelable) {
+        function HTTPStatusEvent(type, bubbles, cancelable) {
             if (bubbles === void 0) { bubbles = false; }
             if (cancelable === void 0) { cancelable = false; }
             _super.call(this, type, bubbles, cancelable);
+            /**
+             * 由服务器返回的 HTTP 状态代码。【只读】
+             * @type {number}
+             * @private
+             */
+            this._status = 0;
         }
+        Object.defineProperty(HTTPStatusEvent.prototype, "status", {
+            get: function () {
+                return this._status;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * 使用指定的EventDispatcher对象来抛出Event事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
-         * @method egret.TimerEvent.dispatchTimerEvent
+         * @method egret.IOErrorEvent.dispatchIOErrorEvent
          * @param target {egret.IEventDispatcher}
-         * @param type {string}
          */
-        TimerEvent.dispatchTimerEvent = function (target, type) {
-            var eventClass = TimerEvent;
-            egret.Event._dispatchByTarget(eventClass, target, type);
+        HTTPStatusEvent.dispatchHTTPStatusEvent = function (target, status) {
+            if (HTTPStatusEvent.httpStatusEvent == null) {
+                HTTPStatusEvent.httpStatusEvent = new HTTPStatusEvent(HTTPStatusEvent.HTTP_STATUS);
+            }
+            HTTPStatusEvent.httpStatusEvent._status = status;
+            target.dispatchEvent(HTTPStatusEvent.httpStatusEvent);
         };
         /**
-         * 每当 Timer 对象达到根据 Timer.delay 属性指定的间隔时调度。
-         * @constant {string} egret.TimerEvent.TIMER
+         * HTTPStatusEvent.HTTP_STATUS 常量定义 httpStatus 事件对象的 type 属性值。
+         * @constant {string} egret.IOErrorEvent.IO_ERROR
          */
-        TimerEvent.TIMER = "timer";
-        /**
-         * 每当它完成 Timer.repeatCount 设置的请求数后调度。
-         * @constant {string} egret.TimerEvent.TIMER_COMPLETE
-         */
-        TimerEvent.TIMER_COMPLETE = "timerComplete";
-        return TimerEvent;
+        HTTPStatusEvent.HTTP_STATUS = "httpStatus";
+        HTTPStatusEvent.httpStatusEvent = null;
+        return HTTPStatusEvent;
     })(egret.Event);
-    egret.TimerEvent = TimerEvent;
-    TimerEvent.prototype.__class__ = "egret.TimerEvent";
+    egret.HTTPStatusEvent = HTTPStatusEvent;
+    HTTPStatusEvent.prototype.__class__ = "egret.HTTPStatusEvent";
 })(egret || (egret = {}));

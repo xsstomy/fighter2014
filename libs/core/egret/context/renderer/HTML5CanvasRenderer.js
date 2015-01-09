@@ -36,6 +36,7 @@ var egret;
      * @class egret.HTML5CanvasRenderer
      * @classdesc
      * @extends egret.RendererContext
+     * @private
      */
     var HTML5CanvasRenderer = (function (_super) {
         __extends(HTML5CanvasRenderer, _super);
@@ -44,16 +45,25 @@ var egret;
             this.globalAlpha = 1;
             this.canvas = canvas || this.createCanvas();
             this.canvasContext = this.canvas.getContext("2d");
+            this._cacheCanvas = document.createElement("canvas");
+            this._cacheCanvas.width = this.canvas.width;
+            this._cacheCanvas.height = this.canvas.height;
+            this._cacheCanvasContext = this._cacheCanvas.getContext("2d");
+            this._cacheCanvasContext["imageSmoothingEnabled"] = egret.RendererContext.imageSmoothingEnabled;
+            this._cacheCanvasContext["webkitImageSmoothingEnabled"] = egret.RendererContext.imageSmoothingEnabled;
+            this._cacheCanvasContext["mozImageSmoothingEnabled"] = egret.RendererContext.imageSmoothingEnabled;
+            this._cacheCanvasContext["msImageSmoothingEnabled"] = egret.RendererContext.imageSmoothingEnabled;
+            this.onResize();
             var f = this.canvasContext.setTransform;
             var that = this;
-            this.canvasContext.setTransform = function (a, b, c, d, tx, ty) {
+            this._cacheCanvasContext.setTransform = function (a, b, c, d, tx, ty) {
                 that._matrixA = a;
                 that._matrixB = b;
                 that._matrixC = c;
                 that._matrixD = d;
                 that._matrixTx = tx;
                 that._matrixTy = ty;
-                f.call(that.canvasContext, a, b, c, d, tx, ty);
+                f.call(that._cacheCanvasContext, a, b, c, d, tx, ty);
             };
             this._matrixA = 1;
             this._matrixB = 0;
@@ -71,14 +81,23 @@ var egret;
                 var container = document.getElementById(egret.StageDelegate.canvas_div_name);
                 canvas = egret.Browser.getInstance().$new("canvas");
                 canvas.id = "egretCanvas";
-                canvas.width = egret.MainContext.instance.stage.stageWidth; //stageW
-                canvas.height = egret.MainContext.instance.stage.stageHeight; //stageH
-                canvas.style.width = container.style.width;
-                canvas.style.height = container.style.height;
-                //                canvas.style.position = "absolute";
                 container.appendChild(canvas);
             }
+            egret.MainContext.instance.stage.addEventListener(egret.Event.RESIZE, this.onResize, this);
             return canvas;
+        };
+        HTML5CanvasRenderer.prototype.onResize = function () {
+            //设置canvas宽高
+            if (this.canvas) {
+                var container = document.getElementById(egret.StageDelegate.canvas_div_name);
+                this.canvas.width = egret.MainContext.instance.stage.stageWidth; //stageW
+                this.canvas.height = egret.MainContext.instance.stage.stageHeight; //stageH
+                this.canvas.style.width = container.style.width;
+                this.canvas.style.height = container.style.height;
+                //              this.canvas.style.position = "absolute";
+                this._cacheCanvas.width = this.canvas.width;
+                this._cacheCanvas.height = this.canvas.height;
+            }
         };
         HTML5CanvasRenderer.prototype.clearScreen = function () {
             var list = egret.RenderFilter.getInstance().getDrawAreaList();
@@ -86,6 +105,8 @@ var egret;
                 var area = list[i];
                 this.clearRect(area.x, area.y, area.width, area.height);
             }
+            var stage = egret.MainContext.instance.stage;
+            this._cacheCanvasContext.clearRect(0, 0, stage.stageWidth, stage.stageHeight);
             this.renderCost = 0;
         };
         HTML5CanvasRenderer.prototype.clearRect = function (x, y, w, h) {
@@ -107,12 +128,12 @@ var egret;
             destY += this._transformTy;
             var beforeDraw = egret.getTimer();
             if (repeat === undefined) {
-                this.canvasContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+                this._cacheCanvasContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
             }
             else {
                 this.drawRepeatImage(texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
             }
-            _super.prototype.drawImage.call(this, image, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
+            _super.prototype.drawImage.call(this, texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat);
             this.renderCost += egret.getTimer() - beforeDraw;
         };
         HTML5CanvasRenderer.prototype.drawRepeatImage = function (texture, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight, repeat) {
@@ -126,14 +147,14 @@ var egret;
                     tempCanvas.getContext("2d").drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
                     tempImage = tempCanvas;
                 }
-                var pat = this.canvasContext.createPattern(tempImage, repeat);
+                var pat = this._cacheCanvasContext.createPattern(tempImage, repeat);
                 texture['pattern'] = pat;
             }
             var pattern = texture['pattern'];
-            this.canvasContext.fillStyle = pattern;
-            this.canvasContext.translate(destX, destY);
-            this.canvasContext.fillRect(0, 0, destWidth, destHeight);
-            this.canvasContext.translate(-destX, -destY);
+            this._cacheCanvasContext.fillStyle = pattern;
+            this._cacheCanvasContext.translate(destX, destY);
+            this._cacheCanvasContext.fillRect(0, 0, destWidth, destHeight);
+            this._cacheCanvasContext.translate(-destX, -destY);
         };
         HTML5CanvasRenderer.prototype.setTransform = function (matrix) {
             //在没有旋转缩放斜切的情况下，先不进行矩阵偏移，等下次绘制的时候偏移
@@ -144,20 +165,20 @@ var egret;
             }
             this._transformTx = this._transformTy = 0;
             if (this._matrixA != matrix.a || this._matrixB != matrix.b || this._matrixC != matrix.c || this._matrixD != matrix.d || this._matrixTx != matrix.tx || this._matrixTy != matrix.ty) {
-                this.canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+                this._cacheCanvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
             }
         };
         HTML5CanvasRenderer.prototype.setAlpha = function (alpha, blendMode) {
             if (alpha != this.globalAlpha) {
-                this.canvasContext.globalAlpha = this.globalAlpha = alpha;
+                this._cacheCanvasContext.globalAlpha = this.globalAlpha = alpha;
             }
             if (blendMode) {
                 this.blendValue = this.blendModes[blendMode];
-                this.canvasContext.globalCompositeOperation = this.blendValue;
+                this._cacheCanvasContext.globalCompositeOperation = this.blendValue;
             }
             else if (this.blendValue != egret.BlendMode.NORMAL) {
                 this.blendValue = this.blendModes[egret.BlendMode.NORMAL];
-                this.canvasContext.globalCompositeOperation = this.blendValue;
+                this._cacheCanvasContext.globalCompositeOperation = this.blendValue;
             }
         };
         HTML5CanvasRenderer.prototype.initBlendMode = function () {
@@ -165,24 +186,51 @@ var egret;
             this.blendModes[egret.BlendMode.NORMAL] = "source-over";
             this.blendModes[egret.BlendMode.ADD] = "lighter";
         };
-        HTML5CanvasRenderer.prototype.setupFont = function (textField) {
-            var ctx = this.canvasContext;
-            var font = textField._italic ? "italic " : "normal ";
-            font += textField._bold ? "bold " : "normal ";
-            font += textField._size + "px " + textField._fontFamily;
+        HTML5CanvasRenderer.prototype.setupFont = function (textField, style) {
+            if (style === void 0) { style = null; }
+            style = style || {};
+            var italic = style["italic"] == null ? textField._italic : style["italic"];
+            var bold = style["bold"] == null ? textField._bold : style["bold"];
+            var size = style["size"] == null ? textField._size : style["size"];
+            var fontFamily = style["fontFamily"] == null ? textField._fontFamily : style["fontFamily"];
+            var ctx = this._cacheCanvasContext;
+            var font = italic ? "italic " : "normal ";
+            font += bold ? "bold " : "normal ";
+            font += size + "px " + fontFamily;
             ctx.font = font;
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
         };
         HTML5CanvasRenderer.prototype.measureText = function (text) {
-            var result = this.canvasContext.measureText(text);
+            var result = this._cacheCanvasContext.measureText(text);
             return result.width;
         };
-        HTML5CanvasRenderer.prototype.drawText = function (textField, text, x, y, maxWidth) {
-            var textColor = textField._textColorString;
-            var strokeColor = textField._strokeColorString;
-            var outline = textField._stroke;
-            var renderContext = this.canvasContext;
+        HTML5CanvasRenderer.prototype.drawText = function (textField, text, x, y, maxWidth, style) {
+            if (style === void 0) { style = null; }
+            this.setupFont(textField, style);
+            style = style || {};
+            var textColor;
+            if (style.textColor != null) {
+                textColor = egret.toColorString(style.textColor);
+            }
+            else {
+                textColor = textField._textColorString;
+            }
+            var strokeColor;
+            if (style.strokeColor != null) {
+                strokeColor = egret.toColorString(style.strokeColor);
+            }
+            else {
+                strokeColor = textField._strokeColorString;
+            }
+            var outline;
+            if (style.stroke != null) {
+                outline = style.stroke;
+            }
+            else {
+                outline = textField._stroke;
+            }
+            var renderContext = this._cacheCanvasContext;
             renderContext.fillStyle = textColor;
             renderContext.strokeStyle = strokeColor;
             if (outline) {
@@ -190,29 +238,34 @@ var egret;
                 renderContext.strokeText(text, x + this._transformTx, y + this._transformTy, maxWidth || 0xFFFF);
             }
             renderContext.fillText(text, x + this._transformTx, y + this._transformTy, maxWidth || 0xFFFF);
-            _super.prototype.drawText.call(this, textField, text, x, y, maxWidth);
+            _super.prototype.drawText.call(this, textField, text, x, y, maxWidth, style);
         };
         HTML5CanvasRenderer.prototype.strokeRect = function (x, y, w, h, color) {
-            this.canvasContext.strokeStyle = color;
-            this.canvasContext.strokeRect(x, y, w, h);
+            this._cacheCanvasContext.strokeStyle = color;
+            this._cacheCanvasContext.strokeRect(x, y, w, h);
         };
         HTML5CanvasRenderer.prototype.pushMask = function (mask) {
-            this.canvasContext.save();
-            this.canvasContext.beginPath();
-            this.canvasContext.rect(mask.x + this._transformTx, mask.y + this._transformTy, mask.width, mask.height);
-            this.canvasContext.clip();
-            this.canvasContext.closePath();
+            this._cacheCanvasContext.save();
+            this._cacheCanvasContext.beginPath();
+            this._cacheCanvasContext.rect(mask.x + this._transformTx, mask.y + this._transformTy, mask.width, mask.height);
+            this._cacheCanvasContext.clip();
+            this._cacheCanvasContext.closePath();
         };
         HTML5CanvasRenderer.prototype.popMask = function () {
-            this.canvasContext.restore();
-            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this._cacheCanvasContext.restore();
+            this._cacheCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
         };
         HTML5CanvasRenderer.prototype.onRenderStart = function () {
-            this.canvasContext.save();
+            this._cacheCanvasContext.save();
         };
         HTML5CanvasRenderer.prototype.onRenderFinish = function () {
-            this.canvasContext.restore();
-            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this._cacheCanvasContext.restore();
+            this._cacheCanvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            var list = egret.RenderFilter.getInstance().getDrawAreaList();
+            for (var i = 0, l = list.length; i < l; i++) {
+                var area = list[i];
+                this.canvasContext.drawImage(this._cacheCanvas, area.x, area.y, area.width, area.height, area.x, area.y, area.width, area.height);
+            }
         };
         return HTML5CanvasRenderer;
     })(egret.RendererContext);
@@ -400,11 +453,14 @@ var egret_h5_graphics;
     }
     egret_h5_graphics.createEndLineCommand = createEndLineCommand;
     function _draw(renderContext) {
+        var length = this.commandQueue.length;
+        if (length == 0) {
+            return;
+        }
         this.renderContext = renderContext;
-        this.canvasContext = this.renderContext.canvasContext;
+        this.canvasContext = this.renderContext._cacheCanvasContext || this.renderContext.canvasContext;
         var canvasContext = this.canvasContext;
         canvasContext.save();
-        var length = this.commandQueue.length;
         if (this.strokeStyleColor && length > 0 && this.commandQueue[length - 1] != this.endLineCommand) {
             this.createEndLineCommand();
             this.commandQueue.push(this.endLineCommand);
@@ -425,6 +481,7 @@ var egret_h5_graphics;
         }
         return Command;
     })();
+    Command.prototype.__class__ = "egret_h5_graphics.Command";
     function _setStyle(colorStr) {
         this.canvasContext.fillStyle = colorStr;
         this.canvasContext.beginPath();

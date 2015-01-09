@@ -33,16 +33,16 @@ var __extends = this.__extends || function (d, b) {
 var egret;
 (function (egret) {
     /**
-     * @class egret.StageText
      * @classdesc
-     * @extends egret.HashObject
+     * @extends egret.EventDispatcher
+     * @private
      */
     var StageText = (function (_super) {
         __extends(StageText, _super);
         function StageText() {
             _super.call(this);
-            this._multiline = false;
-            this._maxChars = 0;
+            this._scaleX = 1;
+            this._scaleY = 1;
             this._size = 30;
             this._color = "#FFFFFF";
             this._fontFamily = "Arial";
@@ -50,35 +50,32 @@ var egret;
             this._italic = false;
             this._textAlign = "left";
             this._visible = false;
+            this._multiline = false;
+            this._maxChars = 0;
         }
         /**
-         * @method egret.StageText#getText
          * @returns {string}
          */
         StageText.prototype._getText = function () {
             return null;
         };
         /**
-         * @method egret.StageText#setText
          * @param value {string}
          */
         StageText.prototype._setText = function (value) {
         };
         /**
-         * @method egret.StageText#setTextType
          * @param type {string}
          */
         StageText.prototype._setTextType = function (type) {
         };
         /**
-         * @method egret.StageText#getTextType
          * @returns {string}
          */
         StageText.prototype._getTextType = function () {
             return null;
         };
         /**
-         * @method egret.StageText#open
          * @param x {number}
          * @param y {number}
          * @param width {number}
@@ -88,26 +85,21 @@ var egret;
             if (width === void 0) { width = 160; }
             if (height === void 0) { height = 21; }
         };
-        /**
-         * @method egret.StageText#add
-         */
         StageText.prototype._show = function () {
         };
         StageText.prototype._add = function () {
         };
-        /**
-         * @method egret.StageText#remove
-         */
         StageText.prototype._remove = function () {
         };
         StageText.prototype._hide = function () {
         };
-        //        public _draw():void {
-        //
-        //        }
         StageText.prototype._addListeners = function () {
         };
         StageText.prototype._removeListeners = function () {
+        };
+        StageText.prototype._setScale = function (x, y) {
+            this._scaleX = x;
+            this._scaleY = y;
         };
         StageText.prototype.changePosition = function (x, y) {
         };
@@ -138,6 +130,9 @@ var egret;
         };
         StageText.prototype._setMultiline = function (value) {
             this._multiline = value;
+        };
+        StageText.prototype._setMaxChars = function (value) {
+            this._maxChars = value;
         };
         StageText.prototype._resetStageText = function () {
         };

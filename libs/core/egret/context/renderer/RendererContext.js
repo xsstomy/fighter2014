@@ -38,6 +38,7 @@ var egret;
      * RenderContext是游戏的渲染上下文。
      * 这是一个抽象基类，制定主要的接口
      * @extends egret.HashObject
+     * @private
      */
     var RendererContext = (function (_super) {
         __extends(RendererContext, _super);
@@ -70,7 +71,7 @@ var egret;
          * @param x {number}
          * @param y {number}
          * @param w {number}
-         * @param h {number}
+         * @param h {numbe}
          */
         RendererContext.prototype.clearRect = function (x, y, w, h) {
         };
@@ -94,7 +95,7 @@ var egret;
         /**
          * 变换Context的当前渲染矩阵
          * @method egret.RendererContext#setTransform
-         * @param matrix {egret.Matrix}
+         * @param matrix {egret.Matri}
          */
         RendererContext.prototype.setTransform = function (matrix) {
         };
@@ -102,7 +103,7 @@ var egret;
          * 设置渲染alpha
          * @method egret.RendererContext#setAlpha
          * @param value {number}
-         * @param blendMode {egret.BlendMode}
+         * @param blendMode {egret.BlendMod}
          */
         RendererContext.prototype.setAlpha = function (value, blendMode) {
         };
@@ -111,7 +112,8 @@ var egret;
          * @method egret.RendererContext#setupFont
          * @param textField {TextField}
          */
-        RendererContext.prototype.setupFont = function (textField) {
+        RendererContext.prototype.setupFont = function (textField, style) {
+            if (style === void 0) { style = null; }
         };
         /**
          * 测量文本
@@ -130,9 +132,10 @@ var egret;
          * @param text {string}
          * @param x {number}
          * @param y {number}
-         * @param maxWidth {number}
+         * @param maxWidth {numbe}
          */
-        RendererContext.prototype.drawText = function (textField, text, x, y, maxWidth) {
+        RendererContext.prototype.drawText = function (textField, text, x, y, maxWidth, style) {
+            if (style === void 0) { style = null; }
             this.profiler.onDrawImage();
         };
         RendererContext.prototype.strokeRect = function (x, y, w, h, color) {
@@ -150,6 +153,11 @@ var egret;
         RendererContext.createRendererContext = function (canvas) {
             return null;
         };
+        /**
+         * 是否对图像使用平滑处理
+         * 该特性目前只支持Canvas
+         */
+        RendererContext.imageSmoothingEnabled = true;
         return RendererContext;
     })(egret.HashObject);
     egret.RendererContext = RendererContext;

@@ -87,3 +87,4 @@ var MoveMode = (function () {
     };
     return MoveMode;
 })();
+MoveMode.prototype.__class__ = "MoveMode";

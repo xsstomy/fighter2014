@@ -96,3 +96,4 @@ var LoadPoint = (function () {
     LoadPoint.tranRa = Math.PI / 180;
     return LoadPoint;
 })();
+LoadPoint.prototype.__class__ = "LoadPoint";

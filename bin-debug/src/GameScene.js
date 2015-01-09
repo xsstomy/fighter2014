@@ -86,6 +86,7 @@ var GameLayer = (function (_super) {
     };
     return GameLayer;
 })(egret.Sprite);
+GameLayer.prototype.__class__ = "GameLayer";
 var BulletLayer = (function (_super) {
     __extends(BulletLayer, _super);
     function BulletLayer(root) {
@@ -100,6 +101,7 @@ var BulletLayer = (function (_super) {
     };
     return BulletLayer;
 })(egret.Sprite);
+BulletLayer.prototype.__class__ = "BulletLayer";
 //数据处理层，即控制数据层
 var DataDealLayer = (function (_super) {
     __extends(DataDealLayer, _super);
@@ -131,3 +133,4 @@ var DataDealLayer = (function (_super) {
     };
     return DataDealLayer;
 })(egret.Sprite);
+DataDealLayer.prototype.__class__ = "DataDealLayer";

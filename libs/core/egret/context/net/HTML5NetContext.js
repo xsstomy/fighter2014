@@ -36,6 +36,7 @@ var egret;
      * @class egret.HTML5NetContext
      * @classdesc
      * @extends egret.NetContext
+     * @private
      */
     var HTML5NetContext = (function (_super) {
         __extends(HTML5NetContext, _super);
@@ -182,7 +183,7 @@ var egret;
         HTML5NetContext.prototype.loadTexture = function (loader) {
             var request = loader._request;
             var image = new Image();
-            image.crossOrigin = "Anonymous";
+            //            image.crossOrigin = "Anonymous";
             image.onload = onImageComplete;
             image.onerror = onLoadError;
             image.src = request.url;

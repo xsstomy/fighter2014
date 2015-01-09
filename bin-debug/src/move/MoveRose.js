@@ -303,3 +303,4 @@ var MoveRoad = (function () {
     MoveRoad.tranRa = Math.PI / 180;
     return MoveRoad;
 })();
+MoveRoad.prototype.__class__ = "MoveRoad";

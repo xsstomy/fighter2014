@@ -127,6 +127,7 @@ var Plain = (function (_super) {
     };
     return Plain;
 })(egret.Sprite);
+Plain.prototype.__class__ = "Plain";
 /*
 * 主角plain
 *
@@ -156,6 +157,7 @@ var LeadPlain = (function (_super) {
     };
     return LeadPlain;
 })(Plain);
+LeadPlain.prototype.__class__ = "LeadPlain";
 /*
 *
 * 敌人飞机
@@ -193,6 +195,7 @@ var EnemyPlain = (function (_super) {
     };
     return EnemyPlain;
 })(Plain);
+EnemyPlain.prototype.__class__ = "EnemyPlain";
 /*
 * 子弹基类
 *
@@ -324,6 +327,7 @@ var Bullet = (function (_super) {
     };
     return Bullet;
 })(egret.Sprite);
+Bullet.prototype.__class__ = "Bullet";
 /**
  * 道具基类
  */
@@ -358,6 +362,7 @@ var Prop = (function (_super) {
     };
     return Prop;
 })(egret.Sprite);
+Prop.prototype.__class__ = "Prop";
 /*
 *  获取图片资源类
 * */
@@ -389,6 +394,7 @@ var Numan = (function (_super) {
     };
     return Numan;
 })(egret.Sprite);
+Numan.prototype.__class__ = "Numan";
 /*
 * myplain 主角飞机图片
 * */
@@ -402,6 +408,7 @@ var myplainmap = (function (_super) {
     }
     return myplainmap;
 })(egret.Sprite);
+myplainmap.prototype.__class__ = "myplainmap";
 /*
 * enemy  敌机飞机图片
 * */
@@ -415,6 +422,7 @@ var enemyplainmap = (function (_super) {
     }
     return enemyplainmap;
 })(egret.Sprite);
+enemyplainmap.prototype.__class__ = "enemyplainmap";
 /*
  * 子弹  主角子弹图片
  * */
@@ -428,6 +436,7 @@ var plainbulletmap = (function (_super) {
     }
     return plainbulletmap;
 })(egret.Sprite);
+plainbulletmap.prototype.__class__ = "plainbulletmap";
 //碰撞区域
 var Rect = (function () {
     function Rect(x, y, width, height) {
@@ -442,3 +451,4 @@ var Rect = (function () {
     }
     return Rect;
 })();
+Rect.prototype.__class__ = "Rect";

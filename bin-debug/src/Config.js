@@ -9,6 +9,7 @@ var Config = (function () {
     Config.enemyPlainbulletArray = [];
     return Config;
 })();
+Config.prototype.__class__ = "Config";
 var LEAD_PLAIN = { x: 200, y: 700, speedx: 0, speedy: 0, hp: 10, shootx: 30, shooty: 0 }; //主角初始位置
 var LEAD_PLAIN_DIE = "1";
 var PLAIN_LEAD_TYPE = "LEAD"; //飞机类别

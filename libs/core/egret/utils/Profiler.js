@@ -63,6 +63,7 @@ var egret;
             if (this._txt == null) {
                 this._txt = new egret.TextField();
                 this._txt.size = 28;
+                this._txt.multiline = true;
                 egret.MainContext.instance.stage.addChild(this._txt);
             }
             var context = egret.MainContext.instance;
